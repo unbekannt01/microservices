@@ -4,25 +4,18 @@
 import { Controller, Get, Inject } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { AppService } from './app.service';
 import { ClientProxy, MessagePattern, Payload } from '@nestjs/microservices';
 import { CreateOrderDto } from './dto/create-order.dto';
 import { Payment } from './entities/payment.entity';
 
 @Controller()
-export class AppController {
+export class PaymentController {
   constructor(
     @InjectRepository(Payment)
     private paymentRepository: Repository<Payment>,
     @Inject('NOTIFICATION_CLIENT')
     private readonly notificationRMQClient: ClientProxy,
-    private readonly appService: AppService,
   ) {}
-
-  @Get()
-  getHello(): string {
-    return this.appService.getHello();
-  }
 
   @Get('payments')
   async getAllPayments(): Promise<Payment[]> {

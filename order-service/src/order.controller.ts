@@ -1,6 +1,5 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import { Controller, Get, Inject } from '@nestjs/common';
-import { AppService } from './app.service';
 import { ClientProxy, MessagePattern, Payload } from '@nestjs/microservices';
 import { CreateOrderDto } from './dto/create-order.dto';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -12,20 +11,14 @@ interface PaymentCompletedPayload {
 }
 
 @Controller()
-export class AppController {
+export class OrderController {
   constructor(
     @InjectRepository(Order)
     private readonly orderRepository: Repository<Order>,
     @Inject('PAYMENT_CLIENT') private readonly paymentRMQClient: ClientProxy,
     @Inject('NOTIFICATION_CLIENT')
     private readonly notificationRMQClient: ClientProxy,
-    private readonly appService: AppService,
   ) {}
-
-  @Get()
-  getData(): string {
-    return this.appService.getData();
-  }
 
   @Get()
   async getAllOrders(): Promise<Order[]> {

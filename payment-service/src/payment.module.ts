@@ -1,9 +1,8 @@
 import { Module } from '@nestjs/common';
-import { AppController } from './app.controller';
-import { AppService } from './app.service';
 import { ClientsModule, Transport } from '@nestjs/microservices';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Payment } from './entities/payment.entity';
+import { PaymentController } from './payment.controller';
 
 @Module({
   imports: [
@@ -32,7 +31,6 @@ import { Payment } from './entities/payment.entity';
       },
     ]),
   ],
-  controllers: [AppController],
-  providers: [AppService],
+  controllers: [PaymentController],
 })
-export class AppModule {}
+export class PaymemtModule {}
