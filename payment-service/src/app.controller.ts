@@ -1,11 +1,19 @@
+/* eslint-disable @typescript-eslint/no-floating-promises */
+// payment-service/src/app.controller.ts
+
 import { Controller, Get, Inject } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
 import { AppService } from './app.service';
 import { ClientProxy, MessagePattern, Payload } from '@nestjs/microservices';
 import { CreateOrderDto } from './dto/create-order.dto';
+import { Payment } from './entities/payment.entity';
 
 @Controller()
 export class AppController {
   constructor(
+    @InjectRepository(Payment)
+    private paymentRepository: Repository<Payment>,
     @Inject('NOTIFICATION_CLIENT')
     private readonly notificationRMQClient: ClientProxy,
     private readonly appService: AppService,
@@ -16,9 +24,38 @@ export class AppController {
     return this.appService.getHello();
   }
 
+  @Get('payments')
+  async getAllPayments(): Promise<Payment[]> {
+    return this.paymentRepository.find();
+  }
+
   @MessagePattern('process-payment')
-  handleProcessPayment(@Payload() createOrderDto: CreateOrderDto) {
+  async handleProcessPayment(@Payload() createOrderDto: CreateOrderDto) {
     console.log('[Payment-Service]: Payment in process', createOrderDto);
-    this.notificationRMQClient.emit('payment-succeed', createOrderDto);
+
+    // Create payment record
+    const payment = this.paymentRepository.create({
+      orderId: createOrderDto.id,
+      email: createOrderDto.email,
+      amount: createOrderDto.quantity * 100, // Example calculation
+      status: 'pending',
+    });
+
+    const savedPayment = await this.paymentRepository.save(payment);
+    console.log('[Payment-Service]: Payment record created:', savedPayment);
+
+    setTimeout(() => {
+      this.paymentRepository.update(savedPayment.id, {
+        status: 'completed',
+        transactionId: `txn_${Date.now()}`,
+      });
+
+      console.log('[Payment-Service]: Payment completed', savedPayment.status);
+
+      this.notificationRMQClient.emit('payment-succeed', {
+        ...createOrderDto,
+        paymentId: savedPayment.id,
+      });
+    }, 2000);
   }
 }

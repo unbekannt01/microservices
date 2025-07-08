@@ -2,6 +2,7 @@ import { Body, Controller, Get, Inject, Post } from '@nestjs/common';
 import { AppService } from './app.service';
 import { ClientProxy } from '@nestjs/microservices';
 import { CreateOrderDto } from './dto/create-order.dto';
+import { v4 as uuidv4 } from 'uuid';
 
 @Controller()
 export class AppController {
@@ -18,8 +19,13 @@ export class AppController {
 
   @Post('order')
   createOrder(@Body() order: CreateOrderDto) {
-    this.client.emit('order-created', order);
-    console.log('Order Send to RabbitMQ', order);
-    return { message: 'Order Send to RabbitMQ', order };
+    const orderWithId = {
+      ...order,
+      id: order.id || uuidv4(),
+    };
+
+    this.client.emit('order-created', orderWithId);
+    console.log('Order Send to RabbitMQ', orderWithId);
+    return { message: 'Order Send to RabbitMQ', order: orderWithId };
   }
 }
