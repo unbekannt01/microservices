@@ -2,11 +2,11 @@
 /* eslint-disable @typescript-eslint/no-floating-promises */
 import { NestFactory } from '@nestjs/core';
 import { MicroserviceOptions, Transport } from '@nestjs/microservices';
-import { PaymemtModule } from './payment.module';
+import { PaymentModule } from './payment.module';
 
 async function bootstrap() {
   const app = await NestFactory.createMicroservice<MicroserviceOptions>(
-    PaymemtModule,
+    PaymentModule,
     {
       transport: Transport.RMQ,
       options: {

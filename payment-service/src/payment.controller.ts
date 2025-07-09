@@ -1,3 +1,4 @@
+/* eslint-disable prettier/prettier */
 /* eslint-disable @typescript-eslint/no-floating-promises */
 // payment-service/src/app.controller.ts
 
@@ -30,7 +31,7 @@ export class PaymentController {
     const payment = this.paymentRepository.create({
       orderId: createOrderDto.id,
       email: createOrderDto.email,
-      amount: createOrderDto.quantity * 100, // Example calculation
+      amount: createOrderDto.quantity * 100,
       status: 'pending',
     });
 

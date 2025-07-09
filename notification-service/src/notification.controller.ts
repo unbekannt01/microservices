@@ -1,13 +1,12 @@
 import { Controller } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
-import { CreateOrderDto } from './dto/create-order.dto';
 
 @Controller()
 export class NotificationController {
   constructor() {}
 
   @MessagePattern('order-created')
-  sendOrderCreatedEmail(@Payload() createOrderDto: CreateOrderDto) {
+  sendOrderCreatedEmail(@Payload() createOrderDto: any) {
     console.log(
       '[Notification-Service]: Sending Order Created Email',
       createOrderDto,
@@ -15,7 +14,7 @@ export class NotificationController {
   }
 
   @MessagePattern('payment-succeed')
-  sendPaymentSucceedEmail(@Payload() createOrderDto: CreateOrderDto) {
+  sendPaymentSucceedEmail(@Payload() createOrderDto: any) {
     console.log(
       '[Notification-Service]: Sending Payment Succeed Email',
       createOrderDto,

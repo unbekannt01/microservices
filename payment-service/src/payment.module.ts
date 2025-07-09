@@ -33,4 +33,4 @@ import { PaymentController } from './payment.controller';
   ],
   controllers: [PaymentController],
 })
-export class PaymemtModule {}
+export class PaymentModule {}

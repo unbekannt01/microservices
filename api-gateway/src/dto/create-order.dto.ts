@@ -1,3 +1,4 @@
+/* eslint-disable prettier/prettier */
 export class CreateOrderDto {
   id?: string;
   email: string;
