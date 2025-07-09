@@ -1,4 +1,5 @@
 /* eslint-disable prettier/prettier */
+// payment-service/src/payment.controller.ts
 import { Controller } from '@nestjs/common';
 import { Repository } from 'typeorm';
 import { ClientProxy, MessagePattern, Payload } from '@nestjs/microservices';
@@ -31,10 +32,13 @@ export class PaymentController {
         orderData.id,
       );
 
+      // Calculate total amount correctly
+      const totalAmount = orderData.amount * orderData.quantity;
+
       const payment = this.paymentRepository.create({
         orderId: orderData.id,
         email: orderData.email,
-        amount: orderData.quantity * 100,
+        amount: totalAmount, // Use calculated total amount
         status: 'pending',
       });
 
@@ -66,11 +70,12 @@ export class PaymentController {
               paymentCompletionData,
             );
 
+            // Pass the unit price (not total) to notification service
             this.notificationRMQClient.emit('payment-succeed', {
               ...orderData,
               paymentId: savedPayment.id,
               transactionId,
-              amount: savedPayment.amount,
+              amount: orderData.amount, // Pass unit price, not total
             });
           } catch (error) {
             console.error(

@@ -1,9 +1,10 @@
-// Create interfaces folder in payment-service
+// payment-service/src/interface/payment.interface.ts
 export interface IOrderForPayment {
   id: string;
   email: string;
   productName: string;
   quantity: number;
+  amount: number; // Add this field
 }
 
 export interface IPaymentData {
