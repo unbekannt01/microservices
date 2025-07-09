@@ -11,7 +11,7 @@ export class NotificationController {
   constructor(private readonly emailService: EmailService) {}
 
   @MessagePattern('order-created')
-  async sendOrderCreatedEmail(orderData: IOrderNotification) {
+  sendOrderCreatedEmail(orderData: IOrderNotification) {
     console.log('[Notification-Service]: Sending Order Created Email');
     console.log('Order Details:', {
       orderId: orderData.id,
@@ -21,37 +21,40 @@ export class NotificationController {
       amount: `${(orderData.amount / 100).toFixed(2)}`,
     });
 
-    const unitPrice = orderData.amount;
+    // const unitPrice = orderData.amount;
 
-    await this.emailService.sendOrderConfirmationMail(
-      orderData.email,
-      orderData.id,
-      [
-        {
-          name: orderData.productName,
-          quantity: orderData.quantity,
-          price: unitPrice,
-        },
-      ],
-    );
+    // await this.emailService.sendOrderConfirmationMail(
+    //   orderData.email,
+    //   orderData.id,
+    //   [
+    //     {
+    //       name: orderData.productName,
+    //       quantity: orderData.quantity,
+    //       price: unitPrice,
+    //     },
+    //   ],
+    // );
   }
 
   @MessagePattern('payment-succeed')
-  async sendPaymentSucceedEmail(paymentData: IPaymentNotification) {
-    console.log('[Notification-Service]: Sending Payment Success Email');
-
-    const unitPrice = paymentData.amount;
-
-    await this.emailService.sendPaymentSuccessMail(
-      paymentData.email,
-      paymentData.id,
-      [
-        {
-          name: paymentData.productName,
-          quantity: paymentData.quantity,
-          price: unitPrice,
-        },
-      ],
+  sendPaymentSucceedEmail(paymentData: IPaymentNotification) {
+    console.log(
+      '[Notification-Service]: Sending Payment Success Email',
+      paymentData,
     );
+
+    // const unitPrice = paymentData.amount;
+
+    // await this.emailService.sendPaymentSuccessMail(
+    //   paymentData.email,
+    //   paymentData.id,
+    //   [
+    //     {
+    //       name: paymentData.productName,
+    //       quantity: paymentData.quantity,
+    //       price: unitPrice,
+    //     },
+    //   ],
+    // );
   }
 }

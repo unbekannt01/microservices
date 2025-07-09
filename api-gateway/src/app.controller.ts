@@ -15,6 +15,7 @@ import { CreateUserDto } from './dto/create-user.dto';
 import { LoginDto } from './dto/login.dto';
 import { AuthGuard } from './guards/auth.guard';
 import { Request } from 'express';
+import { Throttle } from '@nestjs/throttler';
 
 export class CreateOrderRequestDto {
   id?: string;
@@ -49,6 +50,7 @@ export class AppController {
     return await this.appService.login(loginDto.email, loginDto.password);
   }
 
+  @Throttle({ default: { ttl: 60000, limit: 1 } })
   @UseGuards(AuthGuard)
   @Post('order')
   createOrder(@Body() order: CreateOrderRequestDto, @Req() request: Request) {
