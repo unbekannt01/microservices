@@ -18,6 +18,6 @@ async function bootstrap() {
     },
   );
   await app.listen();
-  console.log('App is Listening on RabbitMQ...');
+  console.log('Application is running on RabbitMQ from Order-Service...');
 }
 bootstrap();

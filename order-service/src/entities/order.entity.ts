@@ -1,4 +1,3 @@
-// order-service/src/entities/order.entity.ts
 import {
   Entity,
   PrimaryGeneratedColumn,
@@ -20,6 +19,9 @@ export class Order {
 
   @Column()
   quantity: number;
+
+  @Column({ type: 'integer', nullable: true })
+  amount: number;
 
   @Column({ default: 'pending' })
   status: string; // pending, processing, completed, failed

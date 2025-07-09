@@ -8,9 +8,18 @@ import { AuthService } from './auth.service';
 import { JwtModule } from '@nestjs/jwt';
 import { jwtConstants } from './constants/jwt.constants';
 import { AuthGuard } from './guards/auth.guard';
+import { ThrottlerModule } from '@nestjs/throttler';
 
 @Module({
   imports: [
+    ThrottlerModule.forRoot({
+      throttlers: [
+        {
+          ttl: 60000,
+          limit: 10,
+        },
+      ],
+    }),
     ClientsModule.register([
       {
         name: 'ORDER_SERVICE_RABBITMQ',
@@ -18,6 +27,19 @@ import { AuthGuard } from './guards/auth.guard';
         options: {
           urls: ['amqp://localhost:5672'],
           queue: 'order-queue',
+          queueOptions: {
+            durable: true,
+          },
+        },
+      },
+    ]),
+    ClientsModule.register([
+      {
+        name: 'PAYMENT_SERVICE',
+        transport: Transport.RMQ,
+        options: {
+          urls: ['amqp://localhost:5672'],
+          queue: 'payment-queue',
           queueOptions: {
             durable: true,
           },

@@ -1,23 +1,57 @@
 import { Controller } from '@nestjs/common';
-import { MessagePattern, Payload } from '@nestjs/microservices';
+import { MessagePattern } from '@nestjs/microservices';
+import {
+  IOrderNotification,
+  IPaymentNotification,
+} from './interface/notification.interface';
+import { EmailService } from './services/email.service';
 
-@Controller()
+@Controller({ path: 'notification', version: '1' })
 export class NotificationController {
-  constructor() {}
+  constructor(private readonly emailService: EmailService) {}
 
   @MessagePattern('order-created')
-  sendOrderCreatedEmail(@Payload() createOrderDto: any) {
-    console.log(
-      '[Notification-Service]: Sending Order Created Email',
-      createOrderDto,
+  async sendOrderCreatedEmail(orderData: IOrderNotification) {
+    console.log('[Notification-Service]: Sending Order Created Email');
+    console.log('Order Details:', {
+      orderId: orderData.id,
+      customerEmail: orderData.email,
+      product: orderData.productName,
+      quantity: orderData.quantity,
+      amount: `${(orderData.amount / 100).toFixed(2)}`,
+    });
+
+    const unitPrice = orderData.amount;
+
+    await this.emailService.sendOrderConfirmationMail(
+      orderData.email,
+      orderData.id,
+      [
+        {
+          name: orderData.productName,
+          quantity: orderData.quantity,
+          price: unitPrice,
+        },
+      ],
     );
   }
 
   @MessagePattern('payment-succeed')
-  sendPaymentSucceedEmail(@Payload() createOrderDto: any) {
-    console.log(
-      '[Notification-Service]: Sending Payment Succeed Email',
-      createOrderDto,
+  async sendPaymentSucceedEmail(paymentData: IPaymentNotification) {
+    console.log('[Notification-Service]: Sending Payment Success Email');
+
+    const unitPrice = paymentData.amount;
+
+    await this.emailService.sendPaymentSuccessMail(
+      paymentData.email,
+      paymentData.id,
+      [
+        {
+          name: paymentData.productName,
+          quantity: paymentData.quantity,
+          price: unitPrice,
+        },
+      ],
     );
   }
 }

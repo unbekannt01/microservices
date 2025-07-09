@@ -18,5 +18,8 @@ async function bootstrap() {
     },
   );
   await app.listen();
+  console.log(
+    'Application is running on RabbitMQ from Notification-Service...',
+  );
 }
 bootstrap();

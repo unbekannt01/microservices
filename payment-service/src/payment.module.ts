@@ -1,3 +1,4 @@
+/* eslint-disable prettier/prettier */
 import { Module } from '@nestjs/common';
 import { ClientsModule, Transport } from '@nestjs/microservices';
 import { TypeOrmModule } from '@nestjs/typeorm';
@@ -8,11 +9,11 @@ import { PaymentController } from './payment.controller';
   imports: [
     TypeOrmModule.forRoot({
       type: 'postgres',
-      host: 'localhost',
-      port: 5432,
-      username: 'postgres',
-      password: 'buddy',
-      database: 'fullStack',
+      host: process.env.DB_HOST || 'localhost',
+      port: Number.parseInt(process.env.DB_PORT || '5432'),
+      username: process.env.DB_USERNAME || 'postgres',
+      password: process.env.DB_PASSWORD || 'buddy',
+      database: process.env.DB_NAME || 'fullStack',
       autoLoadEntities: true,
       synchronize: true,
     }),
@@ -22,8 +23,19 @@ import { PaymentController } from './payment.controller';
         name: 'NOTIFICATION_CLIENT',
         transport: Transport.RMQ,
         options: {
-          urls: ['amqp://localhost:5672'],
+          urls: [process.env.RABBITMQ_URL || 'amqp://localhost:5672'],
           queue: 'notification-queue',
+          queueOptions: {
+            durable: true,
+          },
+        },
+      },
+      {
+        name: 'ORDER_CLIENT',
+        transport: Transport.RMQ,
+        options: {
+          urls: [process.env.RABBITMQ_URL || 'amqp://localhost:5672'],
+          queue: 'order-queue',
           queueOptions: {
             durable: true,
           },

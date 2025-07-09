@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Get,
   Inject,
   Post,
   Req,
@@ -9,19 +10,33 @@ import {
 } from '@nestjs/common';
 import { AppService } from './app.service';
 import { ClientProxy } from '@nestjs/microservices';
-import { CreateOrderDto } from './dto/create-order.dto';
 import { v4 as uuidv4 } from 'uuid';
 import { CreateUserDto } from './dto/create-user.dto';
 import { LoginDto } from './dto/login.dto';
 import { AuthGuard } from './guards/auth.guard';
 import { Request } from 'express';
 
-@Controller()
+export class CreateOrderRequestDto {
+  id?: string;
+  email: string;
+  productName: string;
+  quantity: number;
+  amount: number;
+}
+export interface IOrder {
+  id: string;
+  email: string;
+  productName: string;
+  quantity: number;
+  amount: number;
+}
+
+@Controller({ path: 'app', version: '1' })
 export class AppController {
   constructor(
-    @Inject('ORDER_SERVICE_RABBITMQ')
-    private readonly client: ClientProxy,
     private readonly appService: AppService,
+    @Inject('ORDER_SERVICE_RABBITMQ') private readonly client: ClientProxy,
+    @Inject('PAYMENT_SERVICE') private readonly paymentclient: ClientProxy,
   ) {}
 
   @Post('register')
@@ -36,18 +51,28 @@ export class AppController {
 
   @UseGuards(AuthGuard)
   @Post('order')
-  createOrder(@Body() order: CreateOrderDto, @Req() request: Request) {
+  createOrder(@Body() order: CreateOrderRequestDto, @Req() request: Request) {
     const user = request.user as { id: string };
     if (!user?.id) {
       throw new UnauthorizedException('Invalid User Session...!');
     }
-    const orderWithId = {
-      ...order,
+
+    // Convert to internal order format
+    const orderData: IOrder = {
       id: order.id || uuidv4(),
+      email: order.email,
+      productName: order.productName,
+      quantity: order.quantity,
+      amount: order.amount,
     };
 
-    this.client.emit('order-created', orderWithId);
-    console.log('Order Send to RabbitMQ', orderWithId);
-    return { message: 'Order Send to RabbitMQ', order: orderWithId };
+    this.client.emit('order-created', orderData);
+    console.log('Order Send to RabbitMQ', orderData);
+    return { message: 'Order Send to RabbitMQ', order: orderData };
+  }
+
+  @Get()
+  getAllPaymets() {
+    return this.paymentclient.send('get-all-payment', {});
   }
 }
