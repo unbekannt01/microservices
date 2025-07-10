@@ -56,16 +56,14 @@ export class OrderController {
         status: 'processing',
       });
 
-      // Emit to Payment Service
       this.paymentRMQClient.emit('process-payment', savedOrder);
 
-      // Emit to Notification Service — include amount
       this.notificationRMQClient.emit('order-created', {
         id: savedOrder.id,
         email: savedOrder.email,
         productName: savedOrder.productName,
         quantity: savedOrder.quantity,
-        amount: savedOrder.amount, // unit price
+        amount: savedOrder.amount,
       });
 
       return { success: true, orderId: savedOrder.id };
