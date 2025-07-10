@@ -13,14 +13,14 @@ import { PaymentController } from './payment.controller';
       port: Number.parseInt(process.env.DB_PORT || '5432'),
       username: process.env.DB_USERNAME || 'postgres',
       password: process.env.DB_PASSWORD || 'buddy',
-      database: process.env.DB_NAME || 'fullStack',
+      database: process.env.DB_NAME || 'postgres',
       autoLoadEntities: true,
       synchronize: true,
     }),
     TypeOrmModule.forFeature([Payment]),
     ClientsModule.register([
       {
-        name: 'NOTIFICATION_CLIENT',
+        name: 'NOTIFICATION_SERVICE',
         transport: Transport.RMQ,
         options: {
           urls: [process.env.RABBITMQ_URL || 'amqp://localhost:5672'],
@@ -31,7 +31,7 @@ import { PaymentController } from './payment.controller';
         },
       },
       {
-        name: 'ORDER_CLIENT',
+        name: 'ORDER_SERVICE',
         transport: Transport.RMQ,
         options: {
           urls: [process.env.RABBITMQ_URL || 'amqp://localhost:5672'],

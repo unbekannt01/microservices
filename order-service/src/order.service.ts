@@ -18,4 +18,32 @@ export class OrderService {
     if (!order) throw new NotFoundException('Order not found...!');
     else return order;
   }
+
+  async getOrderAnalytics() {
+    const totalOrders = await this.orderRepository.count();
+
+    const pendingOrders = await this.orderRepository.count({
+      where: { status: 'pending' },
+    });
+
+    const completedOrders = await this.orderRepository.count({
+      where: { status: 'completed' },
+    });
+
+    const completedOrderList = await this.orderRepository.find({
+      where: { status: 'completed' },
+      select: ['amount'],
+    });
+
+    const totalRevenue = completedOrderList.reduce((sum, order) => {
+      return sum + (order.amount || 0);
+    }, 0);
+
+    return {
+      totalOrders,
+      pendingOrders,
+      completedOrders,
+      totalRevenue,
+    };
+  }
 }

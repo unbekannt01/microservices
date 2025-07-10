@@ -6,18 +6,21 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 
-export enum UseRole {
+export enum UserRole {
   USER = 'USER',
   ADMIN = 'ADMIN',
 }
 
-@Entity()
+@Entity('user_1')
 export class User {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
   @Column()
-  name: string;
+  firstName: string;
+
+  @Column()
+  lastName: string;
 
   @Column()
   email: string;
@@ -25,8 +28,8 @@ export class User {
   @Column()
   password: string;
 
-  @Column({ default: UseRole.USER })
-  role: UseRole;
+  @Column({ default: UserRole.USER })
+  role: UserRole;
 
   @Column({ type: 'boolean', default: false })
   loginStatus: boolean;

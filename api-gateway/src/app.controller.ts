@@ -24,6 +24,7 @@ export class CreateOrderRequestDto {
   quantity: number;
   amount: number;
 }
+
 export interface IOrder {
   id: string;
   email: string;
@@ -36,7 +37,7 @@ export interface IOrder {
 export class AppController {
   constructor(
     private readonly appService: AppService,
-    @Inject('ORDER_SERVICE_RABBITMQ') private readonly client: ClientProxy,
+    @Inject('ORDER_SERVICE') private readonly client: ClientProxy,
     @Inject('PAYMENT_SERVICE') private readonly paymentclient: ClientProxy,
   ) {}
 
@@ -59,7 +60,6 @@ export class AppController {
       throw new UnauthorizedException('Invalid User Session...!');
     }
 
-    // Convert to internal order format
     const orderData: IOrder = {
       id: order.id || uuidv4(),
       email: order.email,

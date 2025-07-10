@@ -1,10 +1,12 @@
 /* eslint-disable @typescript-eslint/no-unsafe-return */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import { ClientProxy } from '@nestjs/microservices';
 import { Repository } from 'typeorm';
-import { User, UseRole } from './entities/user.entity';
+
 import { firstValueFrom } from 'rxjs';
+import { InjectRepository } from '@nestjs/typeorm';
+import { User, UserRole } from 'src/entities/user.entity';
 
 interface AdminOrderFilters {
   page: number;
@@ -15,24 +17,19 @@ interface AdminOrderFilters {
 
 @Injectable()
 export class AdminService {
-  private readonly userRepository: Repository<User>;
-  private readonly orderClient: ClientProxy;
-  private readonly paymentClient: ClientProxy;
-
   constructor(
-    userRepository: Repository<User>,
-    orderClient: ClientProxy,
-    paymentClient: ClientProxy,
-  ) {
-    this.userRepository = userRepository;
-    this.orderClient = orderClient;
-    this.paymentClient = paymentClient;
-  }
+    @InjectRepository(User)
+    private readonly userRepository: Repository<User>,
+    @Inject('ORDER_SERVICE')
+    private readonly orderClient: ClientProxy,
+    @Inject('PAYMENT_SERVICE')
+    private readonly paymentClient: ClientProxy,
+  ) {}
 
   async getAllOrders(filters: AdminOrderFilters) {
     try {
       const result = await firstValueFrom(
-        this.orderClient.send('get-all-orders-admin', filters),
+        this.orderClient.send('get-all-orders', filters),
       );
 
       return {
@@ -104,7 +101,15 @@ export class AdminService {
     const skip = (page - 1) * limit;
 
     const [users, total] = await this.userRepository.findAndCount({
-      select: ['id', 'name', 'email', 'role', 'loginStatus', 'createdAt'],
+      select: [
+        'id',
+        'firstName',
+        'lastName',
+        'email',
+        'role',
+        'loginStatus',
+        'createdAt',
+      ],
       skip,
       take: limit,
       order: { createdAt: 'DESC' },
@@ -144,7 +149,7 @@ export class AdminService {
       where: { loginStatus: true },
     });
     const adminUsers = await this.userRepository.count({
-      where: { role: UseRole.ADMIN },
+      where: { role: UserRole.ADMIN },
     });
 
     return {

@@ -10,6 +10,8 @@ import { jwtConstants } from './constants/jwt.constants';
 import { AuthGuard } from './guards/auth.guard';
 import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import { APP_GUARD } from '@nestjs/core';
+import { AdminController } from './admin/admin.controller';
+import { AdminService } from './admin/admin.service';
 
 @Module({
   imports: [
@@ -23,7 +25,7 @@ import { APP_GUARD } from '@nestjs/core';
     }),
     ClientsModule.register([
       {
-        name: 'ORDER_SERVICE_RABBITMQ',
+        name: 'ORDER_SERVICE',
         transport: Transport.RMQ,
         options: {
           urls: ['amqp://localhost:5672'],
@@ -53,7 +55,7 @@ import { APP_GUARD } from '@nestjs/core';
       port: 5432,
       username: 'postgres',
       password: 'buddy',
-      database: 'fullStack',
+      database: 'postgres',
       autoLoadEntities: true,
       synchronize: true,
     }),
@@ -65,11 +67,12 @@ import { APP_GUARD } from '@nestjs/core';
       },
     }),
   ],
-  controllers: [AppController],
+  controllers: [AppController, AdminController],
   providers: [
     AppService,
     AuthService,
     AuthGuard,
+    AdminService,
     { provide: APP_GUARD, useClass: ThrottlerGuard },
   ],
 })

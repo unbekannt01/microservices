@@ -1,4 +1,6 @@
-/* eslint-disable prettier/prettier */
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+
 // payment-service/src/payment.controller.ts
 import { Controller } from '@nestjs/common';
 import { Repository } from 'typeorm';
@@ -13,9 +15,9 @@ export class PaymentController {
   constructor(
     @InjectRepository(Payment)
     private readonly paymentRepository: Repository<Payment>,
-    @Inject('ORDER_CLIENT')
+    @Inject('ORDER_SERVICE')
     private readonly orderRMQClient: ClientProxy,
-    @Inject('NOTIFICATION_CLIENT')
+    @Inject('NOTIFICATION_SERVICE')
     private readonly notificationRMQClient: ClientProxy,
   ) {}
 
@@ -104,5 +106,24 @@ export class PaymentController {
       console.error('[Payment-Service]: Error in payment processing:', error);
       throw error;
     }
+  }
+
+  @MessagePattern('get-payment-analytics')
+  async handleGetPaymentAnalytics() {
+    const totalPayments = await this.paymentRepository.count();
+    const completedPayments = await this.paymentRepository.count({
+      where: { status: 'completed' },
+    });
+    const totalRevenue = await this.paymentRepository
+      .createQueryBuilder('payment')
+      .select('SUM(payment.amount)', 'total')
+      .where('payment.status = :status', { status: 'completed' })
+      .getRawOne();
+
+    return {
+      totalPayments,
+      completedPayments,
+      totalRevenue: totalRevenue.total,
+    };
   }
 }

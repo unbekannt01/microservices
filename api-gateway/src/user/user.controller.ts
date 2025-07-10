@@ -2,7 +2,7 @@
 import { Body, Controller, Get, Param, Put, Query } from '@nestjs/common';
 import { Request } from 'express';
 import { UserService } from './user.service';
-import { UpdateUserProfileDto } from './dto/update-user-profile.dto';
+import { UpdateUserProfileDto } from 'src/dto/update-user-profile.dto';
 
 @Controller({ path: 'user', version: '1' })
 export class UserController {

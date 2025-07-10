@@ -10,24 +10,32 @@ import {
 } from '@nestjs/common';
 import { ClientProxy } from '@nestjs/microservices';
 import { Repository } from 'typeorm';
-import { User } from './entities/user.entity';
 import { firstValueFrom } from 'rxjs';
-import { UpdateUserProfileDto } from './dto/update-user-profile.dto';
 import { InjectRepository } from '@nestjs/typeorm';
+import { User } from 'src/entities/user.entity';
+import { UpdateUserProfileDto } from 'src/dto/update-user-profile.dto';
 
 @Injectable()
 export class UserService {
   constructor(
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
-    @Inject('ORDER_CLIENT')
+    @Inject('ORDER_SERVICE')
     private readonly orderClient: ClientProxy,
   ) {}
 
   async getUserProfile(userId: string) {
     const user = await this.userRepository.findOne({
       where: { id: userId },
-      select: ['id', 'name', 'email', 'role', 'createdAt', 'updatedAt'],
+      select: [
+        'id',
+        'firstName',
+        'lastName',
+        'email',
+        'role',
+        'createdAt',
+        'updatedAt',
+      ],
     });
 
     if (!user) {
@@ -48,12 +56,15 @@ export class UserService {
     }
 
     // Update only allowed fields
-    const allowedUpdates = { name: updateDto.name };
+    const allowedUpdates = {
+      firstName: updateDto.firstName,
+      lastName: updateDto.lastName,
+    };
     await this.userRepository.update(userId, allowedUpdates);
 
     const updatedUser = await this.userRepository.findOne({
       where: { id: userId },
-      select: ['id', 'name', 'email', 'role', 'updatedAt'],
+      select: ['id', 'firstName', 'lastName', 'email', 'role', 'updatedAt'],
     });
 
     return {

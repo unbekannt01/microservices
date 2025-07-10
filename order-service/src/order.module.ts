@@ -13,14 +13,14 @@ import { OrderService } from './order.service';
       port: 5432,
       username: 'postgres',
       password: 'buddy',
-      database: 'fullStack',
+      database: 'postgres',
       autoLoadEntities: true,
       synchronize: true,
     }),
     TypeOrmModule.forFeature([Order]),
     ClientsModule.register([
       {
-        name: 'PAYMENT_CLIENT',
+        name: 'PAYMENT_SERVICE',
         transport: Transport.RMQ,
         options: {
           urls: ['amqp://localhost:5672'],
@@ -33,7 +33,7 @@ import { OrderService } from './order.service';
     ]),
     ClientsModule.register([
       {
-        name: 'NOTIFICATION_CLIENT',
+        name: 'NOTIFICATION_SERVICE',
         transport: Transport.RMQ,
         options: {
           urls: ['amqp://localhost:5672'],

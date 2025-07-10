@@ -10,7 +10,7 @@ async function bootstrap() {
     {
       transport: Transport.RMQ,
       options: {
-        urls: ['amqp://localhost:5672'],
+        urls: [process.env.RABBITMQ_URL ?? 'amqp://localhost:5672'],
         queue: 'payment-queue',
         queueOptions: {
           durable: true,
@@ -19,6 +19,6 @@ async function bootstrap() {
     },
   );
   await app.listen();
-  console.log('Application is running on RabbitMQ from Payment-Service...')
+  console.log('Application is running on RabbitMQ from Payment-Service...');
 }
 bootstrap();

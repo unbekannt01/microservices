@@ -7,11 +7,12 @@ import {
   Param,
   Put,
   Body,
+  Req,
 } from '@nestjs/common';
-import { AuthGuard } from './guards/auth.guard';
-import { AdminGuard } from './guards/admin.guard';
 import { AdminService } from './admin.service';
-import { UpdateOrderStatusDto } from './dto/update-order-status.dto';
+import { AuthGuard } from 'src/guards/auth.guard';
+import { AdminGuard } from 'src/guards/admin.guard';
+import { UpdateOrderStatusDto } from 'src/dto/update-order-status.dto';
 
 @Controller({ path: 'admin', version: '1' })
 @UseGuards(AuthGuard, AdminGuard)
@@ -49,5 +50,12 @@ export class AdminController {
   @Get('analytics/revenue')
   async getRevenueAnalytics(@Query('period') period = 'month') {
     return await this.adminService.getRevenueAnalytics(period);
+  }
+
+  @Get('test')
+  @UseGuards(AuthGuard)
+  getTest(@Req() req: Request) {
+    console.log('User in request:', req['user']);
+    return req['user'];
   }
 }

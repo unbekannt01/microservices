@@ -1,4 +1,3 @@
-/* eslint-disable prettier/prettier */
 import { Controller, Get, Param } from '@nestjs/common';
 import { ClientProxy, MessagePattern, Payload } from '@nestjs/microservices';
 import { Repository } from 'typeorm';
@@ -13,16 +12,52 @@ export class OrderController {
   constructor(
     @InjectRepository(Order)
     private readonly orderRepository: Repository<Order>,
-    @Inject('PAYMENT_CLIENT')
+    @Inject('PAYMENT_SERVICE')
     private readonly paymentRMQClient: ClientProxy,
-    @Inject('NOTIFICATION_CLIENT')
+    @Inject('NOTIFICATION_SERVICE')
     private readonly notificationRMQClient: ClientProxy,
     private readonly orderService: OrderService,
   ) {}
 
-  @Get()
-  async getAllOrders(): Promise<Order[]> {
+  @MessagePattern('get-all-orders')
+  async handleGetAllOrders() {
     return await this.orderRepository.find();
+  }
+
+  @MessagePattern('get-order-by-id')
+  async handleGetOrderById(id: string) {
+    return await this.orderRepository.findOne({
+      where: { id: id },
+      select: ['id', 'email', 'productName', 'quantity', 'amount'],
+    });
+  }
+
+  @MessagePattern('get-order-analytics')
+  async handleGetAnalytics() {
+    try {
+      const analytics = await this.orderService.getOrderAnalytics();
+      return analytics;
+    } catch (error) {
+      console.error('[Order-Service]: Error fetching analytics:', error);
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Unknown error',
+      };
+    }
+  }
+
+  @MessagePattern('get-payment-analytics')
+  async handleGetAnalyticsOfPayment() {
+    try {
+      const analytics = await this.orderService.getOrderAnalytics();
+      return analytics;
+    } catch (error) {
+      console.error('[Order-Service]: Error fetching analytics:', error);
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Unknown error',
+      };
+    }
   }
 
   @MessagePattern('order-created')
