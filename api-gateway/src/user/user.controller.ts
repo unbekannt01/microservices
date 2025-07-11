@@ -3,6 +3,7 @@ import {
   Controller,
   Get,
   Param,
+  Post,
   Put,
   Query,
   Req,
@@ -16,6 +17,16 @@ import { AuthGuard } from 'src/guards/auth.guard';
 @Controller({ path: 'user', version: '1' })
 export class UserController {
   constructor(private readonly userService: UserService) {}
+
+  @UseGuards(AuthGuard)
+  @Post('orders/payment/:orderId')
+  async initiateOrderPayment(
+    @Req() request: Request,
+    @Param('orderId') orderId: string,
+  ) {
+    const user = request.user as { id: string };
+    return await this.userService.initiatePayment(orderId, user.id);
+  }
 
   @UseGuards(AuthGuard)
   @Get('profile')

@@ -39,8 +39,8 @@ export class PaymentController {
       const payment = this.paymentRepository.create({
         orderId: orderData.id,
         email: orderData.email,
-        amount: totalAmount, // Use calculated total amount
-        status: 'pending',
+        amount: totalAmount,
+        status: 'completed',
       });
 
       const savedPayment = await this.paymentRepository.save(payment);
@@ -55,6 +55,10 @@ export class PaymentController {
               status: 'completed',
               transactionId,
             });
+
+            // const updatedPayment = await this.paymentRepository.findOneBy({
+            //   id: savedPayment.id,
+            // });
 
             console.log('[Payment-Service]: Payment completed successfully');
 
@@ -71,12 +75,13 @@ export class PaymentController {
               paymentCompletionData,
             );
 
-            // Pass the unit price (not total) to notification service
             this.notificationRMQClient.emit('payment-succeed', {
               ...orderData,
               paymentId: savedPayment.id,
+              status: savedPayment.status,
+
               transactionId,
-              amount: orderData.amount, // Pass unit price, not total
+              amount: orderData.amount,
             });
           } catch (error) {
             console.error(

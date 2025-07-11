@@ -18,7 +18,7 @@ export class NotificationController {
       customerEmail: orderData.email,
       product: orderData.productName,
       quantity: orderData.quantity,
-      amount: `${(orderData.amount / 100).toFixed(2)}`,
+      amount: orderData.amount,
     });
 
     // const unitPrice = orderData.amount;

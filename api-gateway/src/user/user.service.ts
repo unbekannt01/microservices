@@ -141,4 +141,32 @@ export class UserService {
       data: order,
     };
   }
+
+  async initiatePayment(orderId: string, userId: string) {
+    try {
+      const result = await firstValueFrom(
+        this.orderClient.send('initiate-payment', {
+          orderId,
+          userId,
+        }),
+      );
+
+      return {
+        message: 'Payment initiated successfully',
+        data: result,
+      };
+    } catch (error) {
+      console.error('Error initiating payment:', error);
+
+      if (error.message?.includes('not found')) {
+        throw new NotFoundException('Order not found or access denied');
+      }
+
+      if (error.message?.includes('already')) {
+        throw new BadRequestException(error.message);
+      }
+
+      throw new Error('Unable to initiate payment');
+    }
+  }
 }

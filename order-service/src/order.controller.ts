@@ -2,6 +2,7 @@ import {
   BadRequestException,
   Controller,
   Get,
+  Inject,
   NotFoundException,
   Param,
 } from '@nestjs/common';
@@ -9,9 +10,8 @@ import { ClientProxy, MessagePattern, Payload } from '@nestjs/microservices';
 import { Repository } from 'typeorm';
 import { Order } from './entities/order.entity';
 import { IOrderData, IPaymentCompletedData } from './interface/order.interface';
-import { Inject } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
 import { OrderService } from './order.service';
+import { InjectRepository } from '@nestjs/typeorm';
 
 @Controller({ path: 'order', version: '1' })
 export class OrderController {
@@ -98,16 +98,15 @@ export class OrderController {
 
       const amount = Number(orderData.amount);
       const quantity = Number(orderData.quantity);
-      const total = amount * quantity;
 
-      if (isNaN(amount) || isNaN(quantity) || isNaN(total)) {
+      if (isNaN(amount) || isNaN(quantity)) {
         throw new Error(
-          `[Order-Service]: Invalid numeric values. amount=${amount}, quantity=${quantity}, total=${total}`,
+          `[Order-Service]: Invalid numeric values. amount=${amount}, quantity=${quantity}`,
         );
       }
 
-      // Include userId
       const order = this.orderRepository.create({
+        id: orderData.id,
         email: orderData.email,
         productName: orderData.productName,
         quantity,
@@ -119,12 +118,6 @@ export class OrderController {
       const savedOrder = await this.orderRepository.save(order);
       console.log('[Order-Service]: Order saved:', savedOrder);
 
-      await this.orderRepository.update(savedOrder.id, {
-        status: 'processing',
-      });
-
-      this.paymentRMQClient.emit('process-payment', savedOrder);
-
       this.notificationRMQClient.emit('order-created', {
         id: savedOrder.id,
         email: savedOrder.email,
@@ -133,12 +126,45 @@ export class OrderController {
         amount: savedOrder.amount,
       });
 
-      return { success: true, orderId: savedOrder.id };
+      return { success: true, data: savedOrder };
     } catch (error) {
       console.error('[Order-Service]: Error creating order:', error);
       if (orderData.id) {
         await this.orderRepository.update(orderData.id, { status: 'failed' });
       }
+      throw error;
+    }
+  }
+
+  @MessagePattern('initiate-payment')
+  async handleInitiatePayment(
+    @Payload() data: { orderId: string; userId: string },
+  ) {
+    try {
+      const { orderId, userId } = data;
+      console.log('[Order-Service]: Initiating payment for order:', orderId);
+
+      const order = await this.orderRepository.findOne({
+        where: { id: orderId, userId: userId },
+      });
+
+      if (!order) {
+        throw new NotFoundException('Order not found or access denied');
+      }
+
+      if (order.status !== 'pending') {
+        throw new BadRequestException(`Order is already ${order.status}`);
+      }
+
+      await this.orderRepository.update(orderId, {
+        status: 'processing',
+      });
+
+      this.paymentRMQClient.emit('process-payment', order);
+
+      return { success: true, message: 'Payment initiated successfully' };
+    } catch (error) {
+      console.error('[Order-Service]: Error initiating payment:', error);
       throw error;
     }
   }
