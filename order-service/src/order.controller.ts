@@ -1,4 +1,10 @@
-import { Controller, Get, Param } from '@nestjs/common';
+import {
+  BadRequestException,
+  Controller,
+  Get,
+  NotFoundException,
+  Param,
+} from '@nestjs/common';
 import { ClientProxy, MessagePattern, Payload } from '@nestjs/microservices';
 import { Repository } from 'typeorm';
 import { Order } from './entities/order.entity';
@@ -24,10 +30,35 @@ export class OrderController {
     return await this.orderRepository.find();
   }
 
-  @MessagePattern('get-order-by-id')
-  async handleGetOrderById(id: string) {
-    return await this.orderRepository.findOne({
-      where: { id: id },
+  @MessagePattern('get-orders-by-id')
+  async handleGetOrdersById(payload: {
+    id: string;
+    page: number;
+    limit: number;
+  }) {
+    const { id, page, limit } = payload;
+
+    const [orders, total] = await this.orderRepository.findAndCount({
+      where: { userId: id },
+      skip: (page - 1) * limit,
+      take: limit,
+      select: ['id', 'email', 'productName', 'quantity', 'amount'],
+    });
+
+    return {
+      orders,
+      total,
+      page,
+      limit,
+    };
+  }
+
+  @MessagePattern('get-orders-by-email')
+  async handleGetOrderByEmail(data: { email: string }) {
+    const { email } = data;
+
+    return await this.orderRepository.find({
+      where: { email },
       select: ['id', 'email', 'productName', 'quantity', 'amount'],
     });
   }
@@ -69,19 +100,20 @@ export class OrderController {
       const quantity = Number(orderData.quantity);
       const total = amount * quantity;
 
-      // Defensive checks
       if (isNaN(amount) || isNaN(quantity) || isNaN(total)) {
         throw new Error(
           `[Order-Service]: Invalid numeric values. amount=${amount}, quantity=${quantity}, total=${total}`,
         );
       }
 
+      // Include userId
       const order = this.orderRepository.create({
         email: orderData.email,
         productName: orderData.productName,
         quantity,
         amount,
         status: 'pending',
+        userId: orderData.userId,
       });
 
       const savedOrder = await this.orderRepository.save(order);
@@ -107,6 +139,41 @@ export class OrderController {
       if (orderData.id) {
         await this.orderRepository.update(orderData.id, { status: 'failed' });
       }
+      throw error;
+    }
+  }
+
+  @MessagePattern('order-cancelled')
+  async handleOrderCancelled(data: { orderId: string; userId: string }) {
+    try {
+      const { orderId, userId } = data;
+      console.log('[Order-Service]: Received order data:', data);
+
+      const order = await this.orderRepository.findOne({
+        where: { userId: userId, id: orderId },
+      });
+
+      if (!order) {
+        throw new NotFoundException('Order not found');
+      }
+
+      if (order.status === 'completed') {
+        throw new BadRequestException(
+          'Order already completed and cannot be cancelled',
+        );
+      }
+
+      if (order.status === 'cancelled') {
+        throw new BadRequestException('Order is already cancelled');
+      }
+
+      await this.orderRepository.update(orderId, {
+        status: 'cancelled',
+      });
+
+      return { success: true, order };
+    } catch (error) {
+      console.error('[Order-Service]: Error cancelling order:', error);
       throw error;
     }
   }

@@ -5,6 +5,8 @@ export interface IOrderData {
   productName: string;
   quantity: number;
   amount: number;
+  userId: string;
+  userEmail: string;
 }
 
 export interface IPaymentCompletedData {

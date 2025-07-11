@@ -12,6 +12,8 @@ import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import { APP_GUARD } from '@nestjs/core';
 import { AdminController } from './admin/admin.controller';
 import { AdminService } from './admin/admin.service';
+import { UserController } from './user/user.controller';
+import { UserService } from './user/user.service';
 
 @Module({
   imports: [
@@ -67,12 +69,13 @@ import { AdminService } from './admin/admin.service';
       },
     }),
   ],
-  controllers: [AppController, AdminController],
+  controllers: [AppController, AdminController, UserController],
   providers: [
     AppService,
     AuthService,
     AuthGuard,
     AdminService,
+    UserService,
     { provide: APP_GUARD, useClass: ThrottlerGuard },
   ],
 })

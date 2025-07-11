@@ -2,7 +2,6 @@
 import {
   Controller,
   Get,
-  Query,
   UseGuards,
   Param,
   Put,
@@ -47,10 +46,10 @@ export class AdminController {
     return await this.adminService.getAllUsers(page, limit);
   }
 
-  @Get('analytics/revenue')
-  async getRevenueAnalytics(@Query('period') period = 'month') {
-    return await this.adminService.getRevenueAnalytics(period);
-  }
+  // @Get('analytics/revenue')
+  // async getRevenueAnalytics(@Query('period') period = 'month') {
+  //   return await this.adminService.getRevenueAnalytics(period);
+  // }
 
   @Get('test')
   @UseGuards(AuthGuard)

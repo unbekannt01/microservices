@@ -23,6 +23,12 @@ export class Order {
   @Column({ type: 'integer', nullable: true })
   amount: number;
 
+  @Column()
+  userId: string;
+
+  @Column({ nullable: true })
+  userEmail: string;
+
   @Column({ default: 'pending' })
   status: string; // pending, processing, completed, failed
 

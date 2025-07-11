@@ -1,8 +1,8 @@
-/* eslint-disable @typescript-eslint/no-unsafe-return */
 /* eslint-disable @typescript-eslint/no-unsafe-call */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import {
+  BadRequestException,
   Inject,
   Injectable,
   NotFoundException,
@@ -55,7 +55,6 @@ export class UserService {
       throw new NotFoundException('User not found');
     }
 
-    // Update only allowed fields
     const allowedUpdates = {
       firstName: updateDto.firstName,
       lastName: updateDto.lastName,
@@ -73,11 +72,11 @@ export class UserService {
     };
   }
 
-  async getUserOrders(userEmail: string, page = 1, limit = 10) {
+  async getUserOrders(id: string, page = 1, limit = 10) {
     try {
       const orders = await firstValueFrom(
-        this.orderClient.send('get-orders-by-email', {
-          email: userEmail,
+        this.orderClient.send('get-orders-by-id', {
+          id,
           page,
           limit,
         }),
@@ -97,12 +96,15 @@ export class UserService {
     }
   }
 
-  async getUserOrder(userEmail: string, orderId: string) {
+  async getUserOrder(email: string, orderId: string) {
     try {
-      // Get user's orders first
       const orders = await firstValueFrom(
-        this.orderClient.send('get-orders-by-email', { email: userEmail }),
+        this.orderClient.send('get-orders-by-email', { email }),
       );
+
+      if (!orders || orders.length === 0) {
+        throw new UnauthorizedException('No orders found for this user');
+      }
 
       const order = orders.find((o: any) => o.id === orderId);
 
@@ -116,38 +118,27 @@ export class UserService {
       };
     } catch (error) {
       console.error('Error fetching order:', error);
+
+      if (error instanceof UnauthorizedException) {
+        throw error;
+      }
+
       throw new Error('Unable to fetch order details');
     }
   }
 
-  async cancelOrder(userEmail: string, orderId: string) {
-    try {
-      // First verify the order belongs to the user
-      const order = await this.getUserOrder(userEmail, orderId);
+  async orderCancel(orderId: string, userId: string) {
+    const order = await firstValueFrom(
+      this.orderClient.send('order-cancelled', { orderId, userId }),
+    );
 
-      if (order.order.status === 'completed') {
-        throw new Error('Cannot cancel completed order');
-      }
-
-      if (order.order.status === 'cancelled') {
-        throw new Error('Order is already cancelled');
-      }
-
-      // Send cancellation request to order service
-      const result = await firstValueFrom(
-        this.orderClient.send('cancel-order', {
-          orderId,
-          userEmail,
-        }),
-      );
-
-      return {
-        ...result,
-        message: 'Order cancellation initiated',
-      };
-    } catch (error) {
-      console.error('Error cancelling order:', error);
-      throw new Error('Unable to cancel order');
+    if (order.success === false) {
+      throw new BadRequestException(order.error);
     }
+
+    return {
+      message: 'Order cancelled successfully',
+      data: order,
+    };
   }
 }

@@ -1,20 +1,29 @@
 /* eslint-disable prettier/prettier */
-import { IsEmail, IsString, IsNumber, IsOptional, IsUUID } from "class-validator"
+import {
+  IsEmail,
+  IsString,
+  IsNumber,
+  IsOptional,
+  IsUUID,
+} from 'class-validator';
 
 export class CreateOrderDto {
   @IsOptional()
   @IsUUID()
-  id?: string
+  id?: string;
 
   @IsEmail()
-  email: string
+  email: string;
 
   @IsString()
-  productName: string
+  productName: string;
 
   @IsNumber()
-  quantity: number
+  quantity: number;
 
   @IsNumber()
-  amount: number
+  amount: number;
+
+  @IsUUID()
+  userId: string;
 }

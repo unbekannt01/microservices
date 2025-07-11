@@ -1,6 +1,5 @@
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
-
 // payment-service/src/payment.controller.ts
 import { Controller } from '@nestjs/common';
 import { Repository } from 'typeorm';
@@ -126,4 +125,48 @@ export class PaymentController {
       totalRevenue: totalRevenue.total,
     };
   }
+
+  // @MessagePattern('get-revenue-analytics')
+  // async handlegetRevenueAnalytics(@Query('period') period: string) {
+  //   try {
+  //     const now = new Date();
+  //     let fromDate: Date;
+
+  //     switch (period) {
+  //       case 'daily':
+  //         fromDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  //         break;
+  //       case 'weekly':
+  //         fromDate = new Date(now);
+  //         fromDate.setDate(now.getDate() - 7);
+  //         break;
+  //       case 'monthly':
+  //         fromDate = new Date(now.getFullYear(), now.getMonth(), 1);
+  //         break;
+  //       default:
+  //         throw new Error('Invalid period');
+  //     }
+
+  //     const payments = await this.paymentRepository.find({
+  //       where: {
+  //         createdAt: MoreThan(fromDate),
+  //       },
+  //     });
+
+  //     const totalRevenue = payments.reduce(
+  //       (sum, payment) => sum + payment.amount,
+  //       0,
+  //     );
+  //     const totalPayments = payments.length;
+
+  //     return {
+  //       totalRevenue,
+  //       totalPayments,
+  //       message: 'Revenue analytics retrieved successfully',
+  //     };
+  //   } catch (error) {
+  //     console.error('Error fetching revenue analytics:', error);
+  //     throw new Error('Unable to fetch revenue analytics');
+  //   }
+  // }
 }

@@ -127,21 +127,21 @@ export class AdminService {
     };
   }
 
-  async getRevenueAnalytics(period: string) {
-    try {
-      const result = await firstValueFrom(
-        this.paymentClient.send('get-revenue-analytics', { period }),
-      );
+  // async getRevenueAnalytics(period: string) {
+  //   try {
+  //     const result = await firstValueFrom(
+  //       this.paymentClient.send('get-revenue-analytics', { period }),
+  //     );
 
-      return {
-        ...result,
-        message: 'Revenue analytics retrieved successfully',
-      };
-    } catch (error) {
-      console.error('Error fetching revenue analytics:', error);
-      throw new Error('Unable to fetch revenue analytics');
-    }
-  }
+  //     return {
+  //       ...result,
+  //       message: 'Revenue analytics retrieved successfully',
+  //     };
+  //   } catch (error) {
+  //     console.error('Error fetching revenue analytics:', error);
+  //     throw new Error('Unable to fetch revenue analytics');
+  //   }
+  // }
 
   private async getUserStats() {
     const totalUsers = await this.userRepository.count();

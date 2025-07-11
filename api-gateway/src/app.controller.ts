@@ -31,6 +31,7 @@ export interface IOrder {
   productName: string;
   quantity: number;
   amount: number;
+  userId: string;
 }
 
 @Controller({ path: 'app', version: '1' })
@@ -66,6 +67,7 @@ export class AppController {
       productName: order.productName,
       quantity: order.quantity,
       amount: order.amount,
+      userId: user.id,
     };
 
     this.client.emit('order-created', orderData);
